@@ -1,30 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
-import axios from 'axios';
-
-const KEY = '896d4f52c589547b2134bd75ed48742db637fa51810b49b607e37e46ab2c0043';
-const page = '1';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchPhotos } from '../../redux/actions';
 
 const ListScreen = () => {
+  const dispatch = useDispatch();
+  const { loading, photos, error, page } = useSelector((state: any) => state.photos);
   const navigation = useNavigation();
-  const [photos, setPhotos] = useState([]);
 
   useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        const response = await axios.get(`https://api.unsplash.com/photos?order_by=popular&page=${page}&client_id=${KEY}`);
-        setPhotos(response.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
+    dispatch(fetchPhotos(page));
+  }, [dispatch, page]);
 
-    fetchPhotos();
-  }, []);
+  const handleLoadMore = () => {
+    dispatch(fetchPhotos(page));
+  };
 
-  const renderPhoto = ({ item }) => (
+  const renderPhoto = ({ item }: any) => (
     <TouchableOpacity
       style={styles.photoContainer}
       onPress={() => navigation.navigate('Photo', { photo: item })}
@@ -41,14 +35,24 @@ const ListScreen = () => {
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
+
+  if (error) {
+    return <Text>{error}</Text>;
+  }
+
   return (
-      <FlatList
-        data={photos}
-        renderItem={renderPhoto}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.container}
-        numColumns={2}
-      />
+    <FlatList
+      data={photos}
+      renderItem={renderPhoto}
+      keyExtractor={item => item.id}
+      contentContainerStyle={styles.container}
+      numColumns={2}
+      onEndReached={handleLoadMore}
+      onEndReachedThreshold={0.5}
+    />
   );
 };
 
