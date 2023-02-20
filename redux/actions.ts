@@ -38,9 +38,7 @@ export function fetchPhotos(page: number): any {
   return async (dispatch: any) => {
     dispatch({ type: FETCH_PHOTOS_REQUEST });
     try {
-      const response = await fetch(url);
-      const data = await response.json();
-      console.log(page);
+      const data = await axios.get(url);
       dispatch({ type: FETCH_PHOTOS_SUCCESS, payload: data });
     } catch (error) {
       dispatch({ type: FETCH_PHOTOS_FAILURE, error: error.message });
