@@ -1,21 +1,22 @@
 import React, { useEffect } from 'react';
 import { View, FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
+import { NavigationProp, ParamListBase, useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchPhotos } from '../../redux/actions';
+import { RootState } from '../../redux/store';
+import { photosSlice, fetchPhotos, PhotosState } from '../../redux/PhotosSlice';
 
 const ListScreen = () => {
   const dispatch = useDispatch();
-  const { loading, photos, error, page } = useSelector((state: any) => state.photos);
-  const navigation = useNavigation();
+  const { photos, page } = useSelector<RootState, PhotosState>((state) => state.photos);
+  const navigation: NavigationProp<ParamListBase> = useNavigation();
 
   useEffect(() => {
     dispatch(fetchPhotos(page));
   }, [dispatch, page]);
 
   const handleLoadMore = () => {
-    dispatch(fetchPhotos(page));
+    dispatch(photosSlice.actions.incrementPage());
   };
 
   const renderPhoto = ({ item }: any) => (
@@ -34,14 +35,6 @@ const ListScreen = () => {
       </View>
     </TouchableOpacity>
   );
-
-  if (loading) {
-    return <Text>Loading...</Text>;
-  }
-
-  if (error) {
-    return <Text>{error}</Text>;
-  }
 
   return (
     <FlatList

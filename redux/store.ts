@@ -1,11 +1,17 @@
-import { createStore, applyMiddleware } from 'redux';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import thunk from 'redux-thunk';
+import {photosSlice} from './PhotosSlice';
 
-import rootReducer from './reducers';
 
-const middleware = [thunk];
-const applier = (applyMiddleware(...middleware));
+const rootReducer = combineReducers({
+  photos: photosSlice.reducer,
+});
 
-const store = createStore(rootReducer, applier);
+export type RootState = ReturnType<typeof rootReducer>;
+
+const store = configureStore({
+  reducer: rootReducer,
+  middleware: [thunk],
+});
 
 export default store;
