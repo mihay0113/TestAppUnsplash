@@ -1,30 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
-import axios from 'axios';
-
-const KEY = '896d4f52c589547b2134bd75ed48742db637fa51810b49b607e37e46ab2c0043';
-const page = '1';
+import { NavigationProp, ParamListBase, useNavigation } from '@react-navigation/native';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { photosSlice, fetchPhotos, PhotosState } from '../../redux/PhotosSlice';
 
 const ListScreen = () => {
-  const navigation = useNavigation();
-  const [photos, setPhotos] = useState([]);
+  const dispatch = useDispatch();
+  const { photos, page } = useSelector<RootState, PhotosState>((state) => state.photos);
+  const navigation: NavigationProp<ParamListBase> = useNavigation();
 
   useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        const response = await axios.get(`https://api.unsplash.com/photos?order_by=popular&page=${page}&client_id=${KEY}`);
-        setPhotos(response.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
+    dispatch(fetchPhotos(page));
+  }, [dispatch, page]);
 
-    fetchPhotos();
-  }, []);
+  const handleLoadMore = () => {
+    dispatch(photosSlice.actions.incrementPage());
+  };
 
-  const renderPhoto = ({ item }) => (
+  const renderPhoto = ({ item }: any) => (
     <TouchableOpacity
       style={styles.photoContainer}
       onPress={() => navigation.navigate('Photo', { photo: item })}
@@ -42,13 +37,15 @@ const ListScreen = () => {
   );
 
   return (
-      <FlatList
-        data={photos}
-        renderItem={renderPhoto}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.container}
-        numColumns={2}
-      />
+    <FlatList
+      data={photos}
+      renderItem={renderPhoto}
+      keyExtractor={item => item.id}
+      contentContainerStyle={styles.container}
+      numColumns={2}
+      onEndReached={handleLoadMore}
+      onEndReachedThreshold={0.5}
+    />
   );
 };
 
